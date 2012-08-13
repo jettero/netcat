@@ -221,6 +221,7 @@ bool netcat_getport(nc_port_t *dst, const char *port_string,
       return FALSE;
     dst->num = port_num;
     dst->netnum = htons(port_num);
+    debug_v(("netcat_getport() %x = htons(%d)", dst->netnum, dst->num));
     servent = getservbyport((int)dst->netnum, get_proto);
     if (servent) {
       assert(dst->netnum == servent->s_port);
@@ -241,10 +242,12 @@ bool netcat_getport(nc_port_t *dst, const char *port_string,
     port = strtol(port_string, &endptr, 10);
     if (!endptr[0]) {
       /* pure numeric value, check it out */
-      if ((port > 0) && (port < 65536))
+      if ((port > 0) && (port < 65536)) {
+        debug_v(("recurse into netcat_getport(dst=%p, port_string=\"%s\", port_num=%hu)", (void *)dst, NULL_STR(NULL), port));
         return netcat_getport(dst, NULL, (in_port_t)port);
-      else
+      } else {
         return FALSE;
+      }
     }
     else if (endptr != port_string)	/* mixed numeric and string value */
       return FALSE;

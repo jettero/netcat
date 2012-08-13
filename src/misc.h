@@ -55,6 +55,7 @@
 
 /* Debugging output routines */
 #ifdef DEBUG
+#warning "here"
 # define debug(fmtstring) \
   ncprint(NCPRINT_NOFMT | NCPRINT_NONEWLINE | NCPRINT_DEBUG, debug_fmt fmtstring)
 # define debug_d(fmtstring) \
