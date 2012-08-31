@@ -39,7 +39,9 @@ case "$what" in
     install)
         [ ! -f Makefile ] && $0 config
         [ ! -e src/netcat ] && $0 make -j 10
-        scp src/netcat pevo:/data/local/bin/nc
+        ssh pevo mkdir -p /data/local/bin
+        chmod 0755 src/netcat
+        scp -p src/netcat pevo:/data/local/bin/nc
         ;;
 
     full)
