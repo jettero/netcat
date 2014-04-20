@@ -1,0 +1,535 @@
+   Link: [1]Stack Overflow (search)
+   Link: [2]canonical
+   Link: [3]Feed for question 'What's the difference of `./configure` option `--build`, `--host` and `--target`?' (alternate)
+
+  [4]current community
+
+     * [5]chat [6]blog
+       [7]Stack Overflow
+     * 
+       [8]Meta Stack Overflow
+     * 
+       [9]Careers 2.0
+
+  your communities
+   [10]Sign up or [11]log in to customize your list.
+
+  [12]more stack exchange communities
+   [13]Stack Exchange
+   [14]sign up [15]log in [16]tour [17]help
+
+     * [18]Tour Start here for a quick overview of the site
+     * [19]Help Center Detailed answers to any questions you might have
+     * [20]Meta Discuss the workings and policies of this site
+
+   [21]careers 2.0
+   [22]_____________________
+   [23]Stack Overflow
+
+     * [24]Questions
+     * [25]Tags
+     * [26]Tour
+     * [27]Users
+
+     * [28]Ask Question
+
+   Reverse link: [29]unknown
+   [30]Take the 2-minute tour ×
+   Stack Overflow is a question and answer site for professional and enthusiast programmers. It's 100% free, no registration required.
+
+                                     [31]What's the difference of `./configure` option `--build`, `--host` and `--target`?
+
+                                     The script ./configure accepts 3 options --build, --host and --target. I'm confusing their roles. What's the difference
+                                     and semantics of them?
+
+   up vote 28 down vote [32]favorite [33]option [34]configure
+                  11
+                                                                         asked Feb 28 '11 at 7:51
+                                     [35]share|[36]improve this question [37][IMG]
+                                                                         [38]Eonil
+                                                                         17.6k19120255
+
+                                     add comment
+
+2 Answers
+
+   [39]active [40]oldest [41]votes
+
+                                 As noted in [42]this blog post and alluded to in the [43]GCC Configure Terms, --target only applies when you are compiling
+                                 toolchains. When you are doing normal cross-compilation of a library or binary you use
+
+                                 --build=the architecture of the build machine
+                                 --host=the architecture that you want the file to run on
+
+                                 However, when you are building toolchains, things can get more complicated. I think that the following is correct (though I
+                                 can't say I've ever manually compiled a cross-debugger):
+
+                                 Lets say that you have:
+
+                                   * a powerpc build machine that you are going to do all compilation on
+                                   * several embedded devices, with mips processors, which your code is going to run on
+                                   * an x86 laptop that you are going to use for debugging these devices in the field
+
+                                 You would configure and build your debugging server (eg gdbserver) to run on your embedded device with
+
+                                 ./configure --build=powerpc --host=mips
+
+   up vote 19 down vote accepted so that you could putty on to your embedded device and run "gdbserver :1234 a.out" to start debugging and listen on port
+                                 1234.
+
+                                 You would then build your debugging client (which connects to and controls the gdbserver) with
+
+                                 ./configure --build=powerpc --host=i686 --target=mips
+
+                                 which you would copy to your x86 laptop so that in the field you could run "gdbclient embedded.device:1234" in order to
+                                 debug your a.out program.
+
+                                 This all applies to compilers too for which you might want to look at the GCC link above or this section about the
+                                 [44]Canadian cross compile.
+
+                                 Also note that, in practice, you might not see build, host or target specified because, according to [45]this Autoconf
+                                 manual page, "target defaults to host, host to build, and build to the result of config.guess."
+
+                                                                   answered Apr 9 '13 at 12:12
+                                 [46]share|[47]improve this answer                   [48][IMG]
+                                                                                [49]user124850
+                                                                                         35423
+
+                                 add comment
+
+                        Note: Argument --target makes sense only when building compiler (e.g. GCC). When running configure before building GCC:
+
+                          * --build: the machine you are building on
+                          * --host: the machine you are building for
+                          * --target: the machine that GCC will produce binary for
+
+                        From the [50]GCC documentation ([51]Host/Target specific installation notes):
+
+                          If build, host, and target are all the same, this is called a native. If build and host are the same but target is different, this
+   up vote 25 down vote   is called a cross. If build, host, and target are all different this is called a canadian (for obscure reasons dealing with
+                          Canada's political party and the background of the person working on the build at that time). If host and target are the same, but
+                          build is different, you are using a cross-compiler to build a native for a different system. Some people call this a host-x-host,
+                          crossed native, or cross-built native. If build and target are the same, but host is different, you are using a cross compiler to
+                          build a cross compiler that produces code for the machine you're building on. This is rare, so there is no common way of
+                          describing it. There is a proposal to call this a crossback.
+
+                                                          [54]edited Nov 17 '13 at 16:50 answered Feb 28 '11 at 7:59
+                        [52]share|[53]improve this answer                      [55][IMG]                   [57][IMG]
+                                                                          [56]zplesivcak           [58]Delan Azabani
+                                                                               2,2492825                 31.1k872124
+                             [59]gcc.gnu.org/onlinedocs/gccint/Configure-Terms.html –  [60]the.malkolm Mar 30 '12 at 13:33
+
+                        add comment
+
+Your Answer
+
+   [61]
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+   _____________________________________________________________________________________________
+    
+   draft saved
+   draft discarded
+   [62]_____________________
+
+  Sign up or [63]log in
+
+   Sign up using Google
+
+   Sign up using Facebook
+
+   Sign up using Stack Exchange
+
+   [64][ Submit ]
+
+  Post as a guest
+
+   Name [65]_______________________________
+   Email [66]_______________________________ required, but not shown
+
+  Post as a guest
+
+   Name [67]_______________________________
+   Email [68]_______________________________ required, but not shown
+
+   [69][ Post Your Answer ] [70]discard
+
+   By posting your answer, you agree to the [71]privacy policy and [72]terms of service.
+
+Not the answer you're looking for? Browse other questions tagged [73]option [74]configure or [75]ask your own question.
+
+   asked  3 years ago
+   viewed 9857 times
+   active [76]5 months ago
+
+    Community Bulletin
+
+   [77]blog
+   [78]Announcing The Launch Of Meta Stack Exchange
+
+    Linked
+
+                                                                             [79]2
+   [80]Cross Compiling host target and build
+                                                                             [81]5
+   [82]What's the difference between --host and --target in gcc?
+                                                                             [83]3
+   [84]What host and target to use when generating config.h for Android with ./configure?
+                                                                             [85]1
+   [86]make error: Building 64-bit GSL in Cygwin
+                                                                             [87]0
+   [88]linking to libredwg in c++ not working
+
+    Related
+
+                                                                             [89]9
+   [90]What configure options were used when building gcc / libstdc++?
+                                                                            [91]21
+   [92]Build 32bit on 64 bit Linux using a configure script
+                                                                             [93]1
+   [94]What's the `./configure` command?
+                                                                             [95]0
+   [96]iOS: Anybody gotten libtar or libarchive to build? (Problem with configure script.)
+                                                                             [97]0
+   [98]What is the sense of the word “host” in 'HOSTCC' and ./configure --host?
+                                                                             [99]4
+   [100]Magento - configurable product option images
+                                                                            [101]2
+   [102]Difference between configure and qmake
+                                                                            [103]1
+   [104]Hide targets when configure is run with certain options
+                                                                            [105]0
+   [106]When ./configure is given conflicting options, which wins?
+                                                                            [107]0
+   [108]add --host option of configure file (makefile) ,how to do?
+
+    [109]Hot Network Questions
+
+     * [110]What does the "phase margin" parameter of an opamp imply?
+     * [111]Good Textbooks for Real Analysis and Topology.
+     * [112]Birds sitting on electric wires: potential difference between their feet
+     * [113]Is it OK for an MSc Student to Review a Scientific Paper?
+     * [114]Are Master's becoming required for USA PhD programs?
+     * [115]Creating variable of type <base class> to store <derived class> object in C#
+     * [116]Will Ospf advertising router id be modified during flooding?
+     * [117]Writing better JUnit tests
+     * [118]will hosting provider have access to my dedicated server?
+     * [119]What should be included in a freshman 'Mathematics for computer programmers' course?
+     * [120]Decision trees for advertising data
+     * [121]Riesz's Theorem of compactness
+     * [122]Will treats make this behavior worse or work as a training aid?
+     * [123]How can a Paladin be converted into an Anti-Paladin?
+     * [124]We share iCloud accounts on two devices, can both backup photos to iCloud?
+     * [125]Maze Generation
+     * [126]Why is router considered to be a layer 3 device while it can handle layer 4 headers too?
+     * [127]Global Conditional
+     * [128]Get old search style back in Nautilus
+     * [129]Tool to reveal credentials in unencrypted POP3 connection
+     * [130]How to select the first "lowest" (first valley) number in a list?
+     * [131]How do Time Lords prove to others that they are the same person as their past regenerations?
+     * [132]Sum of binomial coefficients with three variables
+     * [133]Why was the triceratops ill?
+
+   [134]more hot questions
+                                                                                                                                          [135]question feed
+   [136]about [137]help [138]badges [139]blog [140]chat [141]data [142]legal [143]privacy policy [144]jobs [145]advertising info mobile [146]contact us
+   [147]feedback
+
+                                Technology                                    Life / Arts        Culture / Recreation         Science             Other
+                          1. [156]Programmers                                                    1. [177]English
+    1. [148]Stack         2. [157]Unix & Linux                            1. [170]Photography       Language & Usage
+       Overflow           3. [158]Ask Different     1. [164]Database      2. [171]Science        2. [178]Skeptics                              1. [192]Stack
+    2. [149]Server Fault     (Apple)                   Administrators        Fiction & Fantasy   3. [179]Mi Yodeya      1. [186]Mathematics       Apps
+    3. [150]Super User    4. [159]WordPress         2. [165]Drupal        3. [172]Graphic           (Judaism)           2. [187]Cross          2. [193]Meta
+    4. [151]Web              Development               Answers               Design              4. [180]Travel            Validated (stats)      Stack
+       Applications       5. [160]Geographic        3. [166]SharePoint    4. [173]Seasoned       5. [181]Christianity   3. [188]Theoretical       Exchange
+    5. [152]Ask Ubuntu       Information Systems    4. [167]User             Advice (cooking)    6. [182]Arqade            Computer Science    3. [194]Area
+    6. [153]Webmasters    6. [161]Electrical           Experience         5. [174]Home              (gaming)            4. [189]Physics           51
+    7. [154]Game             Engineering            5. [168]Mathematica      Improvement         7. [183]Bicycles       5. [190]MathOverflow   4. [195]Stack
+       Development        7. [162]Android           6. [169]more (14)     6. [175]Personal       8. [184]Role-playing   6. [191]more (7)          Overflow
+    8. [155]TeX - LaTeX      Enthusiasts                                     Finance & Money        Games                                         Careers
+                          8. [163]Information                             7. [176]more (11)      9. [185]more (21)
+                             Security
+
+   site design / logo © 2014 stack exchange inc; user contributions licensed under [196]cc by-sa 3.0 with [197]attribution required
+   rev 2014.4.18.1558
+                                                       Stack Overflow works best with JavaScript enabled
+
+References
+
+   Visible links
+   8. http://stackoverflow.com/opensearch.xml
+   9. http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target
+  10. http://stackoverflow.com/feeds/question/5139403
+  11. http://stackoverflow.com/
+  12. http://chat.stackoverflow.com/
+  13. http://blog.stackoverflow.com/
+  14. http://stackoverflow.com/
+  15. http://meta.stackoverflow.com/
+  16. http://careers.stackoverflow.com/
+  17. https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f5139403%2fwhats-the-difference-of-configure-option-build-host-and-target
+  18. https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f5139403%2fwhats-the-difference-of-configure-option-build-host-and-target
+  19. http://stackexchange.com/sites
+  20. A list of all 122 Stack Exchange sites
+	http://stackexchange.com/
+  21. https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f5139403%2fwhats-the-difference-of-configure-option-build-host-and-target
+  22. https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f5139403%2fwhats-the-difference-of-configure-option-build-host-and-target
+  23. http://stackoverflow.com/tour
+  24. Help Center and other resources
+	http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target#
+  25. http://stackoverflow.com/tour
+  26. http://stackoverflow.com/help
+  27. http://meta.stackoverflow.com/
+  28. http://careers.stackoverflow.com/
+  29. http://stackoverflow.com/
+  30. http://stackoverflow.com/questions
+  31. http://stackoverflow.com/tags
+  32. http://stackoverflow.com/about
+  33. http://stackoverflow.com/users
+  34. http://stackoverflow.com/questions/ask
+  35. http://cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png
+  36. http://stackoverflow.com/about
+  37. http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target
+  38. This is a favorite question (click again to undo)
+	http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target#
+  39. show questions tagged 'option'
+	http://stackoverflow.com/questions/tagged/option
+  40. show questions tagged 'configure'
+	http://stackoverflow.com/questions/tagged/configure
+  41. short permalink to this question
+	http://stackoverflow.com/q/5139403
+  42. http://stackoverflow.com/posts/5139403/edit
+  43. http://stackoverflow.com/users/246776/eonil
+  44. http://stackoverflow.com/users/246776/eonil
+  45. Answers with the latest activity first
+	http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target?answertab=active#tab-top
+  46. Answers in the order they were provided
+	http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target?answertab=oldest#tab-top
+  47. Answers with the highest score first
+	http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target?answertab=votes#tab-top
+  48. http://jingfenghanmax.blogspot.co.uk/2010/09/configure-with-host-target-and-build.html
+  49. http://gcc.gnu.org/onlinedocs/gccint/Configure-Terms.html
+  50. http://airs.com/ian/configure/configure_6.html#SEC41
+  51. http://www.hep.by/gnu/autoconf/Hosts-and-Cross_002dCompilation.html
+  52. short permalink to this answer
+	http://stackoverflow.com/a/15901574
+  53. http://stackoverflow.com/posts/15901574/edit
+  54. http://stackoverflow.com/users/1738480/user124850
+  55. http://stackoverflow.com/users/1738480/user124850
+  56. http://gcc.gnu.org/onlinedocs/gccint/Configure-Terms.html
+  57. http://gcc.gnu.org/install/specific.html
+  58. short permalink to this answer
+	http://stackoverflow.com/a/5139451
+  59. http://stackoverflow.com/posts/5139451/edit
+  60. show all edits to this post
+	http://stackoverflow.com/posts/5139451/revisions
+  61. http://stackoverflow.com/users/411882/zplesivcak
+  62. http://stackoverflow.com/users/411882/zplesivcak
+  63. http://stackoverflow.com/users/330644/delan-azabani
+  64. http://stackoverflow.com/users/330644/delan-azabani
+  65. http://gcc.gnu.org/onlinedocs/gccint/Configure-Terms.html
+  66. 1258 reputation
+	http://stackoverflow.com/users/631276/the-malkolm
+  68. http://stackoverflow.com/users/login?returnurl=%2fquestions%2f5139403%2fwhats-the-difference-of-configure-option-build-host-and-target%23new-answer
+  70. http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target#
+  71. http://stackexchange.com/legal/privacy-policy
+  72. http://stackexchange.com/legal/terms-of-service
+  73. show questions tagged 'option'
+	http://stackoverflow.com/questions/tagged/option
+  74. show questions tagged 'configure'
+	http://stackoverflow.com/questions/tagged/configure
+  75. http://stackoverflow.com/questions/ask
+  76. 2013-11-17 16:50:59Z
+	http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target?lastactivity
+  77. http://blog.stackoverflow.com/
+  78. http://blog.stackoverflow.com/2014/04/announcing-the-launch-of-meta-stack-exchange/
+  79. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/9716625
+  80. http://stackoverflow.com/questions/9716625/cross-compiling-host-target-and-build
+  81. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/7088576
+  82. http://stackoverflow.com/questions/7088576/whats-the-difference-between-host-and-target-in-gcc
+  83. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/8871252
+  84. http://stackoverflow.com/questions/8871252/what-host-and-target-to-use-when-generating-config-h-for-android-with-configur
+  85. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/16977948
+  86. http://stackoverflow.com/questions/16977948/make-error-building-64-bit-gsl-in-cygwin
+  87. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/22611907
+  88. http://stackoverflow.com/questions/22611907/linking-to-libredwg-in-c-not-working
+  89. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/2432133
+  90. http://stackoverflow.com/questions/2432133/what-configure-options-were-used-when-building-gcc-libstdc
+  91. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/3261909
+  92. http://stackoverflow.com/questions/3261909/build-32bit-on-64-bit-linux-using-a-configure-script
+  93. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/7385747
+  94. http://stackoverflow.com/questions/7385747/whats-the-configure-command
+  95. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/7532631
+  96. http://stackoverflow.com/questions/7532631/ios-anybody-gotten-libtar-or-libarchive-to-build-problem-with-configure-scrip
+  97. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/8738086
+  98. http://stackoverflow.com/questions/8738086/what-is-the-sense-of-the-word-host-in-hostcc-and-configure-host
+  99. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/11456819
+ 100. http://stackoverflow.com/questions/11456819/magento-configurable-product-option-images
+ 101. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/15722218
+ 102. http://stackoverflow.com/questions/15722218/difference-between-configure-and-qmake
+ 103. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/16044259
+ 104. http://stackoverflow.com/questions/16044259/hide-targets-when-configure-is-run-with-certain-options
+ 105. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/16638229
+ 106. http://stackoverflow.com/questions/16638229/when-configure-is-given-conflicting-options-which-wins
+ 107. Vote score (upvotes - downvotes)
+	http://stackoverflow.com/q/22037238
+ 108. http://stackoverflow.com/questions/22037238/add-host-option-of-configure-file-makefile-how-to-do
+ 109. http://stackexchange.com/questions?tab=hot
+ 110. http://electronics.stackexchange.com/questions/107228/what-does-the-phase-margin-parameter-of-an-opamp-imply
+ 111. http://math.stackexchange.com/questions/760748/good-textbooks-for-real-analysis-and-topology
+ 112. http://physics.stackexchange.com/questions/109142/birds-sitting-on-electric-wires-potential-difference-between-their-feet
+ 113. http://academia.stackexchange.com/questions/19545/is-it-ok-for-an-msc-student-to-review-a-scientific-paper
+ 114. http://academia.stackexchange.com/questions/19559/are-masters-becoming-required-for-usa-phd-programs
+ 115. http://stackoverflow.com/questions/23172380/creating-variable-of-type-base-class-to-store-derived-class-object-in-c-shar
+ 116. http://networkengineering.stackexchange.com/questions/7471/will-ospf-advertising-router-id-be-modified-during-flooding
+ 117. http://codereview.stackexchange.com/questions/47660/writing-better-junit-tests
+ 118. http://serverfault.com/questions/589956/will-hosting-provider-have-access-to-my-dedicated-server
+ 119. http://matheducators.stackexchange.com/questions/1734/what-should-be-included-in-a-freshman-mathematics-for-computer-programmers-cou
+ 120. http://stats.stackexchange.com/questions/94422/decision-trees-for-advertising-data
+ 121. http://math.stackexchange.com/questions/761613/rieszs-theorem-of-compactness
+ 122. http://pets.stackexchange.com/questions/2959/will-treats-make-this-behavior-worse-or-work-as-a-training-aid
+ 123. http://rpg.stackexchange.com/questions/36524/how-can-a-paladin-be-converted-into-an-anti-paladin
+ 124. http://apple.stackexchange.com/questions/128138/we-share-icloud-accounts-on-two-devices-can-both-backup-photos-to-icloud
+ 125. http://codegolf.stackexchange.com/questions/25967/maze-generation
+ 126. http://serverfault.com/questions/590192/why-is-router-considered-to-be-a-layer-3-device-while-it-can-handle-layer-4-head
+ 127. http://tex.stackexchange.com/questions/172464/global-conditional
+ 128. http://askubuntu.com/questions/451198/get-old-search-style-back-in-nautilus
+ 129. http://softwarerecs.stackexchange.com/questions/3396/tool-to-reveal-credentials-in-unencrypted-pop3-connection
+ 130. http://mathematica.stackexchange.com/questions/46469/how-to-select-the-first-lowest-first-valley-number-in-a-list
+ 131. http://scifi.stackexchange.com/questions/54532/how-do-time-lords-prove-to-others-that-they-are-the-same-person-as-their-past-re
+ 132. http://math.stackexchange.com/questions/761520/sum-of-binomial-coefficients-with-three-variables
+ 133. http://scifi.stackexchange.com/questions/54481/why-was-the-triceratops-ill
+ 134. http://stackoverflow.com/questions/5139403/whats-the-difference-of-configure-option-build-host-and-target#
+ 135. feed of this question and its answers
+	http://stackoverflow.com/feeds/question/5139403
+ 136. http://stackoverflow.com/about
+ 137. http://stackoverflow.com/help
+ 138. http://stackoverflow.com/help/badges
+ 139. http://blog.stackoverflow.com/?blb=1
+ 140. http://chat.stackoverflow.com/
+ 141. http://data.stackexchange.com/
+ 142. http://stackexchange.com/legal
+ 143. http://stackexchange.com/legal/privacy-policy
+ 144. http://stackexchange.com/about/hiring
+ 145. http://engine.adzerk.net/r?e=eyJhdiI6NDE0LCJhdCI6MjAsImNtIjo5NTQsImNoIjoxMTc4LCJjciI6Mjc3NiwiZG0iOjQsImZjIjoyODYyLCJmbCI6Mjc1MSwibnciOjIyLCJydiI6MCwicHIiOjExNSwic3QiOjAsInVyIjoiaHR0cDovL3N0YWNrb3ZlcmZsb3cuY29tL2Fib3V0L2NvbnRhY3QiLCJyZSI6MX0&s=hRods5B22XvRBwWIwtIMekcyNF8
+ 146. http://stackoverflow.com/contact
+ 147. http://meta.stackoverflow.com/
+ 148. professional and enthusiast programmers
+	http://stackoverflow.com/
+ 149. professional system and network administrators
+	http://serverfault.com/
+ 150. computer enthusiasts and power users
+	http://superuser.com/
+ 151. power users of web applications
+	http://webapps.stackexchange.com/
+ 152. Ubuntu users and developers
+	http://askubuntu.com/
+ 153. pro webmasters
+	http://webmasters.stackexchange.com/
+ 154. professional and independent game developers
+	http://gamedev.stackexchange.com/
+ 155. users of TeX, LaTeX, ConTeXt, and related typesetting systems
+	http://tex.stackexchange.com/
+ 156. professional programmers interested in conceptual questions about software development
+	http://programmers.stackexchange.com/
+ 157. users of Linux, FreeBSD and other Un*x-like operating systems.
+	http://unix.stackexchange.com/
+ 158. power users of Apple hardware and software
+	http://apple.stackexchange.com/
+ 159. WordPress developers and administrators
+	http://wordpress.stackexchange.com/
+ 160. cartographers, geographers and GIS professionals
+	http://gis.stackexchange.com/
+ 161. electronics and electrical engineering professionals, students, and enthusiasts
+	http://electronics.stackexchange.com/
+ 162. enthusiasts and power users of the Android operating system
+	http://android.stackexchange.com/
+ 163. Information security professionals
+	http://security.stackexchange.com/
+ 164. database professionals who wish to improve their database skills and learn from others in the community
+	http://dba.stackexchange.com/
+ 165. Drupal developers and administrators
+	http://drupal.stackexchange.com/
+ 166. SharePoint enthusiasts
+	http://sharepoint.stackexchange.com/
+ 167. user experience researchers and experts
+	http://ux.stackexchange.com/
+ 168. users of Mathematica
+	http://mathematica.stackexchange.com/
+ 169. http://stackexchange.com/sites#technology
+ 170. professional, enthusiast and amateur photographers
+	http://photo.stackexchange.com/
+ 171. science fiction and fantasy enthusiasts
+	http://scifi.stackexchange.com/
+ 172. professional graphic designers and non-designers trying to do their own graphic design
+	http://graphicdesign.stackexchange.com/
+ 173. professional and amateur chefs
+	http://cooking.stackexchange.com/
+ 174. contractors and serious DIYers
+	http://diy.stackexchange.com/
+ 175. people who want to be financially literate
+	http://money.stackexchange.com/
+ 176. http://stackexchange.com/sites#lifearts
+ 177. linguists, etymologists, and serious English language enthusiasts
+	http://english.stackexchange.com/
+ 178. scientific skepticism
+	http://skeptics.stackexchange.com/
+ 179. those who base their lives on Jewish law and tradition and anyone interested in learning more
+	http://judaism.stackexchange.com/
+ 180. road warriors and seasoned travelers
+	http://travel.stackexchange.com/
+ 181. committed Christians, experts in Christianity and those interested in learning more
+	http://christianity.stackexchange.com/
+ 182. passionate videogamers on all platforms
+	http://gaming.stackexchange.com/
+ 183. people who build and repair bicycles, people who train cycling, or commute on bicycles
+	http://bicycles.stackexchange.com/
+ 184. gamemasters and players of tabletop, paper-and-pencil role-playing games
+	http://rpg.stackexchange.com/
+ 185. http://stackexchange.com/sites#culturerecreation
+ 186. people studying math at any level and professionals in related fields
+	http://math.stackexchange.com/
+ 187. people interested in statistics, machine learning, data analysis, data mining, and data visualization
+	http://stats.stackexchange.com/
+ 188. theoretical computer scientists and researchers in related fields
+	http://cstheory.stackexchange.com/
+ 189. active researchers, academics and students of physics
+	http://physics.stackexchange.com/
+ 190. professional mathematicians
+	http://mathoverflow.net/
+ 191. http://stackexchange.com/sites#science
+ 192. apps, scripts, and development with the Stack Exchange API
+	http://stackapps.com/
+ 193. meta-discussion of the Stack Exchange family of Q&A websites
+	http://meta.stackexchange.com/
+ 194. proposing new sites in the Stack Exchange network
+	http://area51.stackexchange.com/
+ 195. http://careers.stackoverflow.com/
+ 196. http://creativecommons.org/licenses/by-sa/3.0/
+ 197. http://blog.stackoverflow.com/2009/06/attribution-required/
