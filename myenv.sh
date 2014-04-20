@@ -53,7 +53,7 @@ case "${cmd:-test}" in
     myd)
         [ ! -f Makefile ] && $0 config
         $0 install || exit 1
-        adb shell "(echo GET / HTTP/1.1; echo Host: ip.kfr.me; echo; echo) | /data/local/bin/nc -d -v -v -v -v ip.kfr.me 80"
+        adb shell "(echo GET / HTTP/0.9; echo Host: ip.kfr.me; echo; echo) | /data/local/bin/nc -d -v -v -v -v ip.kfr.me 80"
         ;;
 
     install)
