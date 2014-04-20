@@ -39,14 +39,31 @@ unset LDFLAGS # not passed to LD, used as a shitty second cflags in the build pr
 cmd="$1"; shift
 case "${cmd:-test}" in
     full)
+        set -e
         $0 cm
         $0 install
         ;;
 
     cm|config-make)
+        set -e
         $0 config
         $0 make -j 10
         ;;
+
+    myd)
+        [ ! -f Makefile ] && $0 config
+        $0 install || exit 1
+        adb shell "(echo GET / HTTP/1.1; echo Host: ip.kfr.me; echo; echo) | /data/local/bin/nc -d -v -v -v -v ip.kfr.me 80"
+        ;;
+
+    install)
+        [ ! -f Makefile ] && $0 config
+        [ ! -e src/netcat ] && $0 make -j 10
+        adb push src/netcat /sdcard/.netcat.bin || exit 1
+        adb shell 'mkdir -p /data/local/bin' || exit 1
+        adb shell 'install -m 0755 /sdcard/.netcat.bin /data/local/bin/nc' || exit 1
+        ;;
+
 
     make)
         make "$@"
