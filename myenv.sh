@@ -21,7 +21,7 @@ TOOLCHAIN=$ANDROID_NDK/toolchains/${TARGET}-${ANDROID}/prebuilt/${HOST}
 SYSROOT=$ANDROID_NDK/platforms/$PLATFORM/arch-arm
 ALIB=${SYSROOT}/usr/lib
 AINC=${SYSROOT}/usr/include
-TBIN=${TOOLCHAIN}/usr/bin
+TBIN=${TOOLCHAIN}/bin
 LGCC=${TOOLCHAIN}
 CC=${TBIN}/${TARGET}-gcc
 LD=${TBIN}/${TARGET}-ld
@@ -36,14 +36,26 @@ CFLAGS+=" -Wl,-rpath-link=${ALIB} -L${ALIB} -Wl,-nostdlib --sysroot $SYSROOT $LG
 export CC CXX LD LDSHARED AR RANLIB CFLAGS
 unset LDFLAGS # not passed to LD, used as a shitty second cflags in the build process
 
+declare -A dcheck; dcheck[TOOLCHAIN]=1; dcheck[TBIN]=1; dcheck[ALIB]=1; dcheck[AINC]=1
+declare -A xcheck; xcheck[CC]=1; xcheck[LD]=1
+declare -A fcheck; fcheck[LGCC]=1
+
 x=0
+SEP="[m"
+BAD=0
 for i in TOOLCHAIN SYSROOT ALIB AINC TBIN LGCC CC LD AR RANLIB CXX LDSHARE CFLAGS; do
-    echo -n "[$(( x = ( x + 1 ) % 2 ));35m$i[m[$x;32m"
-    eval "echo \"\$$i[m\""
+    v="$( eval "echo \$$i" )"
+    c="[1;30m∅"
+
+    if   [ -n "${dcheck[$i]}" ]; then if [ -d "$v" ]; then c="[1;32mOK"; else c="[31mBAD"; BAD=1; fi
+    elif [ -n "${xcheck[$i]}" ]; then if [ -x "$v" ]; then c="[1;32mOK"; else c="[31mBAD"; BAD=1; fi
+    elif [ -n "${fcheck[$i]}" ]; then if [ -f "$v" ]; then c="[1;32mOK"; else c="[31mBAD"; BAD=1; fi
+    fi
+
+    echo "[$(( x = ( x + 1 ) % 2 ));35m$i$SEP$c$SEP[$x;36m$v[m"
 
 done | column -ts 
-
-exit
+[ $BAD -gt 0 ] && exit 1
 
 case "${what:-test}" in
     test)
