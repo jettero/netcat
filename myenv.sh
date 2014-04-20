@@ -36,8 +36,8 @@ CFLAGS+=" -Wl,-rpath-link=${ALIB} -L${ALIB} -Wl,-nostdlib --sysroot $SYSROOT $LG
 export CC CXX LD LDSHARED AR RANLIB CFLAGS
 unset LDFLAGS # not passed to LD, used as a shitty second cflags in the build process
 
-what=( "$@" )
-case "${what[0]:-test}" in
+cmd="$1"; shift
+case "${cmd:-test}" in
     full)
         $0 cm
         $0 install
@@ -49,7 +49,7 @@ case "${what[0]:-test}" in
         ;;
 
     make)
-        make $*
+        make "$@"
         ;;
 
     clean)
@@ -58,7 +58,7 @@ case "${what[0]:-test}" in
 
     config*)
         $0 clean
-        sh ./configure --host=arm-linux $*
+        sh ./configure --build=i686 --target=arm-linux --host=arm-linux "$@"
         ;;
 
     test)
