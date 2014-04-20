@@ -1,11 +1,28 @@
 #!/bin/bash
 
-TOOLCHAIN=/usr/local/android/android-ndk-r6/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86
-ANDROID=/usr/local/android/android-ndk-r6/platforms/android-9/arch-arm/usr
-ALIB=${ANDROID}/lib
-AINC=${ANDROID}/include
-TBIN=${TOOLCHAIN}/bin
+ANDROID=4.4.3
+PLATFORM=android-9
 TARGET=arm-linux-androideabi
+HOST=$(uname -sm | tr A-Z\  a-z-)
+
+for i in /usr/local/android/android-ndk-*; do
+    if [ -f $i/toolchains/${TARGET}-${ANDROID}/prebuilt/${HOST}/bin/${TARGET}-readelf ]; then
+        ANDROID_NDK=$i
+        break
+    fi
+done
+
+if [ ! -d "$ANDROID_NDK" ]; then
+    exit "couldn't figure out the NDK to use to get to ANDROID=$ANDROID TARGET=$TARGET HOST=$HOST"
+    exit 1
+fi
+
+TOOLCHAIN=$ANDROID_NDK/toolchains/${TARGET}-${ANDROID}/prebuilt/${HOST}
+SYSROOT=$ANDROID_NDK/platforms/$PLATFORM/arch-arm
+ALIB=${SYSROOT}/usr/lib
+AINC=${SYSROOT}/usr/include
+TBIN=${TOOLCHAIN}/usr/bin
+LGCC=${TOOLCHAIN}
 CC=${TBIN}/${TARGET}-gcc
 LD=${TBIN}/${TARGET}-ld
 AR=${TBIN}/${TARGET}-ar
@@ -13,35 +30,33 @@ RANLIB=${TBIN}/${TARGET}-ranlib
 CXX=${TBIN}/${TARGET}-g++
 LDSHARE=$LD
 
-LDFLAGS="-Bdynamic -dynamic-linker /system/bin/linker --gc-sections -z nocopyreloc --no-undefined -rpath-link=${ALIB} -L${ALIB} -nostdlib ${ALIB}/crtend_android.o ${ALIB}/crtbegin_dynamic.o ${TOOLCHAIN}/lib/gcc/arm-linux-androideabi/4.4.3/libgcc.a -lc -lm"
-CFLAGS="-Wl,-Bdynamic -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections,-z,nocopyreloc -Wl,--no-undefined -Wl,-rpath-link=${ALIB} -L${ALIB} -Wl,-nostdlib --sysroot /usr/local/android/android-ndk-r6/platforms/android-9/arch-arm ${TOOLCHAIN}/lib/gcc/arm-linux-androideabi/4.4.3/libgcc.a -lc -lm -I$ANDROID/include"
+CFLAGS="-Wl,-Bdynamic -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections,-z,nocopyreloc -Wl,--no-undefined"
+CFLAGS+=" -Wl,-rpath-link=${ALIB} -L${ALIB} -Wl,-nostdlib --sysroot $SYSROOT $LGCC -lc -lm -I$AINC"
 
-unset LDFLAGS # this apparently confuses configure scripts and isn't actually passed to LD, but instead added to the end of CC
-export CC CXX LD LDSHARED AR RANLIB CFLAGS LDFLAGS
+export CC CXX LD LDSHARED AR RANLIB CFLAGS
+unset LDFLAGS # not passed to LD, used as a shitty second cflags in the build process
 
-what=$1
-shift
-case "$what" in
+x=0
+for i in TOOLCHAIN SYSROOT ALIB AINC TBIN LGCC CC LD AR RANLIB CXX LDSHARE CFLAGS; do
+    echo -n "[$(( x = ( x + 1 ) % 2 ));35m$i[m[$x;32m"
+    eval "echo \"\$$i[m\""
 
+done | column -ts 
+
+exit
+
+case "${what:-test}" in
     test)
-        echo 'int main() { return 0; }' > test.c \
-            && $CC $CFLAGS test.c \
-            && (file a.out | hi . purple)\
-            && (echo seems to work | hi . lime)
-        ;;
+        echo 'int main() { return 0; }' > test.c
+        $CC $CFLAGS test.c
+        if [ $? = 0 -a -f a.out ]; then
+            echo "[1;32mCC seems to work[m"
+            exit 0
 
-    myd)
-        [ ! -f Makefile ] && $0 config
-        $0 install
-        ssh pevo /data/local/bin/nc -d -v -v -v -v voltar.org 80
-        ;;
-
-    install)
-        [ ! -f Makefile ] && $0 config
-        [ ! -e src/netcat ] && $0 make -j 10
-        ssh pevo mkdir -p /data/local/bin
-        chmod 0755 src/netcat
-        scp -p src/netcat pevo:/data/local/bin/nc
+        else
+            echo "[31mCC seems to not work[m"
+            exit 1
+        fi
         ;;
 
     full)
