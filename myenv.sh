@@ -75,7 +75,7 @@ case "${cmd:-test}" in
 
     config*)
         $0 clean
-        sh ./configure --build=i686 --target=arm-linux --host=arm-linux "$@"
+        sh ./configure --enable-debug --build=i686 --target=arm-linux --host=arm-linux "$@"
         ;;
 
     test)
