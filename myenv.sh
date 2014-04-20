@@ -22,7 +22,7 @@ SYSROOT=$ANDROID_NDK/platforms/$PLATFORM/arch-arm
 ALIB=${SYSROOT}/usr/lib
 AINC=${SYSROOT}/usr/include
 TBIN=${TOOLCHAIN}/bin
-LGCC=${TOOLCHAIN}
+LGCC=${TOOLCHAIN}/lib/gcc/${TARGET}/$ANDROID/libgcc.a
 CC=${TBIN}/${TARGET}-gcc
 LD=${TBIN}/${TARGET}-ld
 AR=${TBIN}/${TARGET}-ar
@@ -36,41 +36,8 @@ CFLAGS+=" -Wl,-rpath-link=${ALIB} -L${ALIB} -Wl,-nostdlib --sysroot $SYSROOT $LG
 export CC CXX LD LDSHARED AR RANLIB CFLAGS
 unset LDFLAGS # not passed to LD, used as a shitty second cflags in the build process
 
-declare -A dcheck; dcheck[TOOLCHAIN]=1; dcheck[TBIN]=1; dcheck[ALIB]=1; dcheck[AINC]=1
-declare -A xcheck; xcheck[CC]=1; xcheck[LD]=1
-declare -A fcheck; fcheck[LGCC]=1
-
-x=0
-SEP="[m"
-BAD=0
-for i in TOOLCHAIN SYSROOT ALIB AINC TBIN LGCC CC LD AR RANLIB CXX LDSHARE CFLAGS; do
-    v="$( eval "echo \$$i" )"
-    c="[1;30m∅"
-
-    if   [ -n "${dcheck[$i]}" ]; then if [ -d "$v" ]; then c="[1;32mOK"; else c="[31mBAD"; BAD=1; fi
-    elif [ -n "${xcheck[$i]}" ]; then if [ -x "$v" ]; then c="[1;32mOK"; else c="[31mBAD"; BAD=1; fi
-    elif [ -n "${fcheck[$i]}" ]; then if [ -f "$v" ]; then c="[1;32mOK"; else c="[31mBAD"; BAD=1; fi
-    fi
-
-    echo "[$(( x = ( x + 1 ) % 2 ));35m$i$SEP$c$SEP[$x;36m$v[m"
-
-done | column -ts 
-[ $BAD -gt 0 ] && exit 1
-
-case "${what:-test}" in
-    test)
-        echo 'int main() { return 0; }' > test.c
-        $CC $CFLAGS test.c
-        if [ $? = 0 -a -f a.out ]; then
-            echo "[1;32mCC seems to work[m"
-            exit 0
-
-        else
-            echo "[31mCC seems to not work[m"
-            exit 1
-        fi
-        ;;
-
+what=( "$@" )
+case "${what[0]:-test}" in
     full)
         $0 cm
         $0 install
@@ -93,6 +60,51 @@ case "${what:-test}" in
         $0 clean
         sh ./configure --host=arm-linux $*
         ;;
+
+    test)
+        declare -A dcheck; dcheck[TOOLCHAIN]=1; dcheck[TBIN]=1; dcheck[ALIB]=1; dcheck[AINC]=1
+        declare -A xcheck; xcheck[CC]=1; xcheck[LD]=1
+        declare -A fcheck; fcheck[LGCC]=1
+
+        x=0
+        SEP="[m"
+        BAD=0
+        for i in TOOLCHAIN SYSROOT ALIB AINC TBIN LGCC CC LD AR RANLIB CXX LDSHARE CFLAGS; do
+            v="$( eval "echo \$$i" )"
+            c="[1;30m∅"
+
+            if   [ -n "${dcheck[$i]}" ]; then if [ -d "$v" ]; then c="[1;32mOK"; else c="[0;31mBAD"; BAD=1; fi
+            elif [ -n "${xcheck[$i]}" ]; then if [ -x "$v" ]; then c="[1;32mOK"; else c="[0;31mBAD"; BAD=1; fi
+            elif [ -n "${fcheck[$i]}" ]; then if [ -f "$v" ]; then c="[1;32mOK"; else c="[0;31mBAD"; BAD=1; fi
+            fi
+
+            echo "[$(( x = ( x + 1 ) % 2 ));35m$i$SEP$c$SEP[$x;36m$v[m"
+
+        done | column -ts 
+
+        echo
+        ( OPS4="$PS4"; PS4=" [1;35m → [1;30m"; set -x 
+            echo 'int main() { return 0; }' > test.c
+            $CC $CFLAGS test.c
+        )
+        PS4=$OPS4
+
+        echo
+        echo "[1;34m$(file a.out)"
+        echo
+
+        if [ $? = 0 -a -x a.out ]; then
+            echo "[32mCC seems to work !!![m"
+            exit 0
+
+        else
+            echo "[31mCC seems to not work ...[m"
+            exit 1
+        fi
+
+        echo
+        ;;
+
 
     *) echo what to do\? ;;
 esac
